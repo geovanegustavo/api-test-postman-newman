@@ -715,9 +715,7 @@
                       "    }\r",
                       "\r",
                       "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
-                      "});\r",
-                      "\r",
-                      "pm.collectionVariables.unset(\"idUsuario\");"
+                      "});"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -735,6 +733,199 @@
                   "mode": "raw",
                   "raw": ""
                 },
+                "url": {
+                  "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "{{idUsuario}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar usuário administrador",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve editar usuário administrador cadastrado na base\", () => {\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Registro alterado com sucesso\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      "//pm.collectionVariables.unset(\"idUsuario\");"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "function primeiroNome () {\r",
+                      "    const firstName = [\"Miguel\", \"João\", \"Pedro\", \"Maria\", \"Ana\", \"Fernanda\", \"Rafael\", \"Juliana\", \"Lucas\", \r",
+                      "    \"Camila\", \"Rosana\", \"Misael\", \"Joaquim\", \"Francisco\", \"Fernando\", \"Bruno\", \"Amanda\"];\r",
+                      "    const randomItem = firstName[Math.floor(Math.random() * firstName.length)];\r",
+                      "    return randomItem;\r",
+                      "}\r",
+                      "\r",
+                      "function ultimoNome () {\r",
+                      "    const lastName = [\"Santos\", \"Oliveira\", \"Costa\", \"Silva\", \"Ferreira\", \"Pereira\", \"Rodrigues\", \"Martins\", \r",
+                      "    \"da Silva\", \"dos Santos\", \"Almeida\", \"Barros\", \"Gomes\", \"Carvalho\", \"Lima\", \"Rocha\", \"Nunes\", \"Farias\", \"Melo\"];\r",
+                      "    const randomItem = lastName[Math.floor(Math.random() * lastName.length)];\r",
+                      "    return randomItem;\r",
+                      "}\r",
+                      "\r",
+                      "const nomeCompleto = `${primeiroNome()} ${ultimoNome()}`;\r",
+                      "\r",
+                      "pm.collectionVariables.set(\"nomeCompleto\", nomeCompleto);\r",
+                      "\r",
+                      "// Função para gerar string aleatória\r",
+                      "function randomString(length) {\r",
+                      "    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';\r",
+                      "    let result = '';\r",
+                      "    for (let i = 0; i < length; i++) {\r",
+                      "        result += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+                      "    }\r",
+                      "    return result;\r",
+                      "}\r",
+                      "\r",
+                      "// Monta e-mail aleatório\r",
+                      "let email = randomString(8) + \"@qa.com.br\";\r",
+                      "pm.collectionVariables.set(\"emailAleatorio\", email);\r",
+                      "\r",
+                      "console.log(\"Nome completo gerado:\", nomeCompleto);\r",
+                      "console.log(\"Email gerado:\", pm.collectionVariables.get(\"emailAleatorio\"));"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nome\": \"{{nomeCompleto}}\",\r\n  \"email\": \"{{emailAleatorio}}\",\r\n  \"password\": \"teste\",\r\n  \"administrador\": \"true\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "{{idUsuario}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Excluir usuário administrador",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve excluir usuário administrador cadastrado na base\", () => {\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Registro excluído com sucesso\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      "pm.collectionVariables.unset(\"idUsuario\");"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
                 "url": {
                   "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
                   "host": [
@@ -799,8 +990,7 @@
                       "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
                       "});\r",
                       "\r",
-                      "pm.collectionVariables.unset(\"nomeCompleto\");\r",
-                      "pm.collectionVariables.unset(\"emailAleatorio\");"
+                      "pm.collectionVariables.unset(\"idUsuario\");"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -811,26 +1001,34 @@
                   "listen": "prerequest",
                   "script": {
                     "exec": [
-                      "function primeiroNome () {\r",
-                      "    const firstName = [\"Miguel\", \"João\", \"Pedro\", \"Maria\", \"Ana\", \"Fernanda\", \"Rafael\", \"Juliana\", \"Lucas\", \r",
-                      "    \"Camila\", \"Rosana\", \"Misael\", \"Joaquim\", \"Francisco\", \"Fernando\", \"Bruno\", \"Amanda\"];\r",
-                      "    const randomItem = firstName[Math.floor(Math.random() * firstName.length)];\r",
-                      "    return randomItem;\r",
-                      "}\r",
+                      "const urlBase = pm.environment.get(\"baseURL\");\r",
                       "\r",
-                      "function ultimoNome () {\r",
-                      "    const lastName = [\"Santos\", \"Oliveira\", \"Costa\", \"Silva\", \"Ferreira\", \"Pereira\", \"Rodrigues\", \"Martins\", \r",
-                      "    \"da Silva\", \"dos Santos\", \"Almeida\", \"Barros\", \"Gomes\", \"Carvalho\", \"Lima\", \"Rocha\", \"Nunes\", \"Farias\", \"Melo\"];\r",
-                      "    const randomItem = lastName[Math.floor(Math.random() * lastName.length)];\r",
-                      "    return randomItem;\r",
-                      "}\r",
+                      "const requestCadastro = {\r",
+                      "    url: `${urlBase}/usuarios`,\r",
+                      "    method: 'POST',\r",
+                      "    header: { 'Content-Type': 'application/json' },\r",
+                      "    body: {\r",
+                      "        mode: 'raw',\r",
+                      "        raw: JSON.stringify({\r",
+                      "            nome: \"Usuário duplicado\",\r",
+                      "            email: \"email-duplicado@qa.com.br\",\r",
+                      "            password: \"teste\",\r",
+                      "            administrador: \"true\"\r",
+                      "        })\r",
+                      "    }\r",
+                      "};\r",
                       "\r",
-                      "const nomeCompleto = `${primeiroNome()} ${ultimoNome()}`;\r",
-                      "\r",
-                      "pm.collectionVariables.set(\"nomeCompleto\", nomeCompleto);\r",
-                      "\r",
-                      "console.log(\"Nome completo gerado:\", nomeCompleto);\r",
-                      "console.log(\"Email gerado:\", pm.collectionVariables.get(\"emailAleatorio\"));"
+                      "// 2. Enviar a requisição de cadastro em segundo plano\r",
+                      "pm.sendRequest(requestCadastro, function (err, res) {\r",
+                      "    if (res.code === 201) {\r",
+                      "        const responseData = res.json();\r",
+                      "        // Salva o _id gerado em uma variável local para a URL do GET usar\r",
+                      "        pm.variables.set(\"idUsuario\", responseData._id);\r",
+                      "        console.log(`[Setup] Usuário criado para busca. - ID: ${responseData._id}`);\r",
+                      "    } else {\r",
+                      "        console.error(\"[Setup] Falha ao criar usuário base para o teste de busca.\");\r",
+                      "    }\r",
+                      "});"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -843,7 +1041,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n  \"nome\": \"{{nomeCompleto}}\",\r\n  \"email\": \"{{emailAleatorio}}\",\r\n  \"password\": \"teste\",\r\n  \"administrador\": \"true\"\r\n}",
+                  "raw": "{\r\n  \"nome\": \"Usuário editado\",\r\n  \"email\": \"email-duplicado@qa.com.br\",\r\n  \"password\": \"teste\",\r\n  \"administrador\": \"true\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -870,6 +1068,14 @@
   "variable": [
     {
       "key": "token",
+      "value": ""
+    },
+    {
+      "key": "emailAleatorio",
+      "value": ""
+    },
+    {
+      "key": "nomeCompleto",
       "value": ""
     }
   ]

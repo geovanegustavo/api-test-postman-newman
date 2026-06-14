@@ -1,0 +1,353 @@
+{
+  "info": {
+    "_postman_id": "4e0d9760-c659-4ee1-ba92-2b0370b1076d",
+    "name": "Serverest",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52626574",
+    "_collection_link": "https://go.postman.co/collection/52626574-4e0d9760-c659-4ee1-ba92-2b0370b1076d?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Autenticação e login",
+      "item": [
+        {
+          "name": "Cenários de sucesso",
+          "item": [
+            {
+              "name": "Realizar login de administrador",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Extrair o campo authorization e remover o prefixo \"Bearer \"\r",
+                      "const rawToken = resposta.authorization.replace(\"Bearer \", \"\");\r",
+                      "\r",
+                      "// Salvar o token na variável de ambiente da coleção\r",
+                      "pm.collectionVariables.set(\"token\", rawToken);\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve autenticar o usuário administrador com credenciais válidas\", () => {\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Login realizado com sucesso\");\r",
+                      "\r",
+                      "    // Confirma que o token é uma string não vazia\r",
+                      "    pm.expect(rawToken).to.be.a(\"string\").and.to.have.length.greaterThan(0);\r",
+                      "\r",
+                      "    // Verifica se o token segue o formato típico de JWT (três partes separadas por \".\")\r",
+                      "    pm.expect(rawToken.split(\".\")).to.have.length(3);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" },\r",
+                      "        authorization: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\", \"authorization\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"email\": \"fulano@qa.com\",\r\n  \"password\": \"teste\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/login",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Cenários de exceção",
+          "item": [
+            {
+              "name": "Realizar login inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Não deve autenticar o usuário administrador com credenciais inválidas\", () => {\r",
+                      "    // Verifica se o status HTTP é 401\r",
+                      "    pm.response.to.have.status(401);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Email e/ou senha inválidos\");\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"email\": \"fulano1@qa.com\",\r\n  \"password\": \"teste\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/login",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Realizar login sem email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Não deve autenticar o usuário sem email\", () => {\r",
+                      "    // Verifica se o status HTTP é 400\r",
+                      "    pm.response.to.have.status(400);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.email).to.eql(\"email não pode ficar em branco\");\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        email: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"email\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"email\": \"\",\r\n  \"password\": \"teste\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/login",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Realizar login sem senha",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Não deve autenticar o usuário sem senha\", () => {\r",
+                      "    // Verifica se o status HTTP é 400\r",
+                      "    pm.response.to.have.status(400);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.password).to.eql(\"password não pode ficar em branco\");\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        password: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"password\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"email\": \"fulano@qa.com\",\r\n  \"password\": \"\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/login",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}

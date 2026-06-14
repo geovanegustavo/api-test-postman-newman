@@ -945,6 +945,189 @@
           "name": "Cenários de exceção - Administrador",
           "item": [
             {
+              "name": "Editar usuário não existente",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "function gerarID(length = 16) {\r",
+                      "    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\r",
+                      "    let id = '';\r",
+                      "    for (let i = 0; i < length; i++) {\r",
+                      "        id += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+                      "    }\r",
+                      "    return id;\r",
+                      "}\r",
+                      "\r",
+                      "// Criar um novo ID de usuário no padrão da API do Serverest\r",
+                      "const userId = gerarID();\r",
+                      "\r",
+                      "// Salvar o ID na variável de ambiente \"userId\"\r",
+                      "pm.collectionVariables.set(\"idUsuario\", userId);\r",
+                      "\r",
+                      "// Log para conferência\r",
+                      "console.log(\"Novo idUsuario gerado:\", userId);\r",
+                      "\r",
+                      "// Monta o corpo da requisição\r",
+                      "function primeiroNome () {\r",
+                      "    const firstName = [\"Miguel\", \"João\", \"Pedro\", \"Maria\", \"Ana\", \"Fernanda\", \"Rafael\", \"Juliana\", \"Lucas\", \r",
+                      "    \"Camila\", \"Rosana\", \"Misael\", \"Joaquim\", \"Francisco\", \"Fernando\", \"Bruno\", \"Amanda\"];\r",
+                      "    const randomItem = firstName[Math.floor(Math.random() * firstName.length)];\r",
+                      "    return randomItem;\r",
+                      "}\r",
+                      "\r",
+                      "function ultimoNome () {\r",
+                      "    const lastName = [\"Santos\", \"Oliveira\", \"Costa\", \"Silva\", \"Ferreira\", \"Pereira\", \"Rodrigues\", \"Martins\", \r",
+                      "    \"da Silva\", \"dos Santos\", \"Almeida\", \"Barros\", \"Gomes\", \"Carvalho\", \"Lima\", \"Rocha\", \"Nunes\", \"Farias\", \"Melo\"];\r",
+                      "    const randomItem = lastName[Math.floor(Math.random() * lastName.length)];\r",
+                      "    return randomItem;\r",
+                      "}\r",
+                      "\r",
+                      "const nomeCompleto = `${primeiroNome()} ${ultimoNome()}`;\r",
+                      "\r",
+                      "pm.collectionVariables.set(\"nomeCompleto\", nomeCompleto);\r",
+                      "\r",
+                      "// Função para gerar string aleatória\r",
+                      "function randomString(length) {\r",
+                      "    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';\r",
+                      "    let result = '';\r",
+                      "    for (let i = 0; i < length; i++) {\r",
+                      "        result += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+                      "    }\r",
+                      "    return result;\r",
+                      "}\r",
+                      "\r",
+                      "// Monta e-mail aleatório\r",
+                      "let email = randomString(8) + \"@qa.com.br\";\r",
+                      "pm.collectionVariables.set(\"emailAleatorio\", email);\r",
+                      "\r",
+                      "console.log(\"Nome completo gerado:\", nomeCompleto);\r",
+                      "console.log(\"Email gerado:\", pm.collectionVariables.get(\"emailAleatorio\"));"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Extrai o id do usuário do JSON de resposta\r",
+                      "const rawId = resposta._id;\r",
+                      "\r",
+                      "// Salvar o id na variável de ambiente da coleção\r",
+                      "pm.collectionVariables.set(\"idUsuario\", rawId);\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve cadastrar um usuário administrador com credenciais válidas\", () => {\r",
+                      "    // Verifica se o status HTTP é 201\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Cadastro realizado com sucesso\");\r",
+                      "    console.log(resposta.message);\r",
+                      "\r",
+                      "    // Confirma que o id do usuário não está vazia e não nula\r",
+                      "    pm.expect(rawId).to.be.not.null;\r",
+                      "\r",
+                      "    // Confirma que o token é uma string não vazia\r",
+                      "    pm.expect(rawId).to.be.a(\"string\").and.to.have.length.greaterThan(0);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" },\r",
+                      "        _id: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\", \"_id\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      "\r",
+                      "////////////////////////////////////////////////\r",
+                      "// Teardown - Exclusão do usuário após os testes\r",
+                      "const urlBase = pm.environment.get(\"baseURL\");\r",
+                      "const idUsuario = pm.collectionVariables.get(\"idUsuario\");\r",
+                      "\r",
+                      "// Só executa o DELETE se o ID realmente existir (evita rodar se o cadastro falhou)\r",
+                      "if (idUsuario) {\r",
+                      "    const configDelecao = {\r",
+                      "        url: `${urlBase}/usuarios/${idUsuario}`,\r",
+                      "        method: 'DELETE',\r",
+                      "        header: {\r",
+                      "            'Content-Type': 'application/json'\r",
+                      "        }\r",
+                      "    };\r",
+                      "\r",
+                      "    // Dispara a deleção em segundo plano logo após os testes rodarem\r",
+                      "    pm.sendRequest(configDelecao, function (err, res) {\r",
+                      "        if (err) {\r",
+                      "            console.error(\"Erro no Teardown ao excluir usuário:\", err);\r",
+                      "        } else {\r",
+                      "            console.log(`[Teardown] Usuário ${idUsuario} excluído com sucesso da base.`);\r",
+                      "        }\r",
+                      "    });\r",
+                      "}\r",
+                      "\r",
+                      "pm.collectionVariables.unset(\"idUsuario\");\r",
+                      "pm.collectionVariables.unset(\"nomeCompleto\");\r",
+                      "pm.collectionVariables.unset(\"emailAleatorio\");"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nome\": \"{{nomeCompleto}}\",\r\n  \"email\": \"{{emailAleatorio}}\",\r\n  \"password\": \"teste\",\r\n  \"administrador\": \"true\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "{{idUsuario}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
               "name": "Cadastrar usuário com e-mail duplicado",
               "event": [
                 {
@@ -1059,6 +1242,219 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "Usuário não encontrado",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "function gerarID(length = 16) {\r",
+                      "    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\r",
+                      "    let id = '';\r",
+                      "    for (let i = 0; i < length; i++) {\r",
+                      "        id += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+                      "    }\r",
+                      "    return id;\r",
+                      "}\r",
+                      "\r",
+                      "// Criar um novo ID de usuário no padrão da API do Serverest\r",
+                      "const userId = gerarID();\r",
+                      "\r",
+                      "// Salvar o ID na variável de ambiente \"userId\"\r",
+                      "pm.collectionVariables.set(\"idUsuario\", userId);\r",
+                      "\r",
+                      "// Log para conferência\r",
+                      "console.log(\"Novo idUsuario gerado:\", userId);"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Extrai o id do usuário do JSON de resposta\r",
+                      "const rawId = resposta._id;\r",
+                      "\r",
+                      "// Salvar o id na variável de ambiente da coleção\r",
+                      "pm.collectionVariables.set(\"idUsuario\", rawId);\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Não deve encontrar usuário inexistente na base de dados\", () => {\r",
+                      "    // Verifica se o status HTTP é 400\r",
+                      "    pm.response.to.have.status(400);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Usuário não encontrado\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      "pm.collectionVariables.unset(\"idUsuario\");"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "{{idUsuario}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Usuário não excluído",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "function gerarID(length = 16) {\r",
+                      "    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\r",
+                      "    let id = '';\r",
+                      "    for (let i = 0; i < length; i++) {\r",
+                      "        id += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+                      "    }\r",
+                      "    return id;\r",
+                      "}\r",
+                      "\r",
+                      "// Criar um novo ID de usuário no padrão da API do Serverest\r",
+                      "const userId = gerarID();\r",
+                      "\r",
+                      "// Salvar o ID na variável de ambiente \"userId\"\r",
+                      "pm.collectionVariables.set(\"idUsuario\", userId);\r",
+                      "\r",
+                      "// Log para conferência\r",
+                      "console.log(\"Novo idUsuario gerado:\", userId);"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Extrai o id do usuário do JSON de resposta\r",
+                      "const rawId = resposta._id;\r",
+                      "\r",
+                      "// Salvar o id na variável de ambiente da coleção\r",
+                      "pm.collectionVariables.set(\"idUsuario\", rawId);\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Não deve excluir usuário não encontrado na base de dados\", () => {\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Nenhum registro excluído\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      "pm.collectionVariables.unset(\"idUsuario\");"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "usuarios",
+                    "{{idUsuario}}"
+                  ]
+                }
+              },
+              "response": []
             }
           ]
         }
@@ -1068,14 +1464,6 @@
   "variable": [
     {
       "key": "token",
-      "value": ""
-    },
-    {
-      "key": "emailAleatorio",
-      "value": ""
-    },
-    {
-      "key": "nomeCompleto",
       "value": ""
     }
   ]

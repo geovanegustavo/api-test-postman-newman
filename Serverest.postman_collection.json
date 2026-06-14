@@ -204,7 +204,7 @@
                       "\r",
                       "    // Confirma que a mensagem indica sucesso\r",
                       "    pm.expect(resposta.email).to.eql(\"email não pode ficar em branco\");\r",
-                      "    console.log(resposta.message);\r",
+                      "    console.log(resposta.email);\r",
                       "});\r",
                       "\r",
                       "// Definição do JSON Schema esperado\r",
@@ -282,7 +282,7 @@
                       "\r",
                       "    // Confirma que a mensagem indica sucesso\r",
                       "    pm.expect(resposta.password).to.eql(\"password não pode ficar em branco\");\r",
-                      "    console.log(resposta.message);\r",
+                      "    console.log(resposta.password);\r",
                       "});\r",
                       "\r",
                       "// Definição do JSON Schema esperado\r",
@@ -360,11 +360,11 @@
                       "\r",
                       "    // Confirma que a mensagem indica sucesso\r",
                       "    pm.expect(resposta.email).to.eql(\"email não pode ficar em branco\");\r",
-                      "    console.log(resposta.message);\r",
+                      "    console.log(resposta.email);\r",
                       "\r",
                       "    // Confirma que a mensagem indica sucesso\r",
                       "    pm.expect(resposta.password).to.eql(\"password não pode ficar em branco\");\r",
-                      "    console.log(resposta.message);\r",
+                      "    console.log(resposta.password);\r",
                       "});\r",
                       "\r",
                       "// Definição do JSON Schema esperado\r",
@@ -747,7 +747,12 @@
                 }
               },
               "response": []
-            },
+            }
+          ]
+        },
+        {
+          "name": "Cenários de exceção - Administrador",
+          "item": [
             {
               "name": "Cadastrar usuário com e-mail duplicado",
               "event": [

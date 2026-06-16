@@ -1263,10 +1263,10 @@
                       "const userId = gerarID();\r",
                       "\r",
                       "// Salvar o ID na variável de ambiente \"userId\"\r",
-                      "pm.collectionVariables.set(\"idUsuario\", userId);\r",
+                      "pm.collectionVariables.set(\"idUsuarioNaoEncontrado\", userId);\r",
                       "\r",
                       "// Log para conferência\r",
-                      "console.log(\"Novo idUsuario gerado:\", userId);"
+                      "console.log(\"Novo idUsuarioNaoEncontrado gerado:\", userId);"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -1279,12 +1279,6 @@
                     "exec": [
                       "// Extrair o corpo da resposta JSON\r",
                       "const resposta = pm.response.json();\r",
-                      "\r",
-                      "// Extrai o id do usuário do JSON de resposta\r",
-                      "const rawId = resposta._id;\r",
-                      "\r",
-                      "// Salvar o id na variável de ambiente da coleção\r",
-                      "pm.collectionVariables.set(\"idUsuario\", rawId);\r",
                       "\r",
                       "// Teste principal de autenticação\r",
                       "pm.test(\"Não deve encontrar usuário inexistente na base de dados\", () => {\r",
@@ -1322,7 +1316,7 @@
                       "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
                       "});\r",
                       "\r",
-                      "pm.collectionVariables.unset(\"idUsuario\");"
+                      "pm.collectionVariables.unset(\"idUsuarioNaoEncontrado\");"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -1341,13 +1335,13 @@
                   "raw": ""
                 },
                 "url": {
-                  "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
+                  "raw": "{{baseURL}}/usuarios/{{idUsuarioNaoEncontrado}}",
                   "host": [
                     "{{baseURL}}"
                   ],
                   "path": [
                     "usuarios",
-                    "{{idUsuario}}"
+                    "{{idUsuarioNaoEncontrado}}"
                   ]
                 }
               },
@@ -1373,10 +1367,10 @@
                       "const userId = gerarID();\r",
                       "\r",
                       "// Salvar o ID na variável de ambiente \"userId\"\r",
-                      "pm.collectionVariables.set(\"idUsuario\", userId);\r",
+                      "pm.collectionVariables.set(\"idUsuarioNaoExcluido\", userId);\r",
                       "\r",
                       "// Log para conferência\r",
-                      "console.log(\"Novo idUsuario gerado:\", userId);"
+                      "console.log(\"Novo idUsuarioNaoExcluido gerado:\", userId);"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -1389,12 +1383,6 @@
                     "exec": [
                       "// Extrair o corpo da resposta JSON\r",
                       "const resposta = pm.response.json();\r",
-                      "\r",
-                      "// Extrai o id do usuário do JSON de resposta\r",
-                      "const rawId = resposta._id;\r",
-                      "\r",
-                      "// Salvar o id na variável de ambiente da coleção\r",
-                      "pm.collectionVariables.set(\"idUsuario\", rawId);\r",
                       "\r",
                       "// Teste principal de autenticação\r",
                       "pm.test(\"Não deve excluir usuário não encontrado na base de dados\", () => {\r",
@@ -1432,7 +1420,7 @@
                       "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
                       "});\r",
                       "\r",
-                      "pm.collectionVariables.unset(\"idUsuario\");"
+                      "pm.collectionVariables.unset(\"idUsuarioNaoExcluido\");"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -1444,13 +1432,13 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{baseURL}}/usuarios/{{idUsuario}}",
+                  "raw": "{{baseURL}}/usuarios/{{idUsuarioNaoExcluido}}",
                   "host": [
                     "{{baseURL}}"
                   ],
                   "path": [
                     "usuarios",
-                    "{{idUsuario}}"
+                    "{{idUsuarioNaoExcluido}}"
                   ]
                 }
               },

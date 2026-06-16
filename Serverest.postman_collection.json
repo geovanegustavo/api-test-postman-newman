@@ -1206,7 +1206,7 @@
                       "    if (res.code === 201) {\r",
                       "        const responseData = res.json();\r",
                       "        // Salva o _id gerado em uma variável local para a URL do GET usar\r",
-                      "        pm.variables.set(\"idUsuario\", responseData._id);\r",
+                      "        pm.collectionVariables.set(\"idUsuario\", responseData._id);\r",
                       "        console.log(`[Setup] Usuário criado para busca. - ID: ${responseData._id}`);\r",
                       "    } else {\r",
                       "        console.error(\"[Setup] Falha ao criar usuário base para o teste de busca.\");\r",
@@ -1452,489 +1452,693 @@
       "name": "3. Produto",
       "item": [
         {
-          "name": "Listar produtos cadastrados",
-          "event": [
+          "name": "Cenários de sucesso",
+          "item": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Extrair o corpo da resposta JSON\r",
-                  "const resposta = pm.response.json();\r",
-                  "\r",
-                  "// Teste principal de autenticação\r",
-                  "pm.test(\"Deve listar produtos da base\", () => {\r",
-                  "    // OBSERVAÇÃO: A API do ServeRest não permite filtrar a lista por tamanho na URL\r",
-                  "    // Este é o motivo deste teste listar todos os produtos\r",
-                  "    // A lista de usuários é limpa a cada 10 minutos\r",
-                  "\r",
-                  "    // Verifica se o status HTTP é 200\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "\r",
-                  "    // Verifica se a quantidade de usuários retornada é igual ao tamanho do array de usuários\r",
-                  "    pm.expect(resposta.quantidade).to.eql(resposta.produtos.length);\r",
-                  "\r",
-                  "    // Verifica se a quantidade de usuários é maior que zero e se o array de usuários é um array válido\r",
-                  "    pm.expect(resposta.quantidade).to.be.greaterThan(0);\r",
-                  "\r",
-                  "    // Verifica se o array de usuários é um array válido e não vazio\r",
-                  "    pm.expect(resposta.produtos).to.be.an('array');\r",
-                  "});\r",
-                  "\r",
-                  "// Definição do JSON Schema esperado\r",
-                  "const schema = {\r",
-                  "    \"type\": \"object\",\r",
-                  "    \"properties\": {\r",
-                  "        \"quantidade\": { \"type\": \"number\" },\r",
-                  "        \"produtos\": {\r",
-                  "            \"type\": \"array\",\r",
-                  "            \"items\": {\r",
-                  "                \"type\": \"object\",\r",
-                  "                \"properties\": {\r",
-                  "                    \"nome\": { \"type\": \"string\" },\r",
-                  "                    \"preco\": { \"type\": \"number\" },\r",
-                  "                    \"descricao\": { \"type\": \"string\" },\r",
-                  "                    \"quantidade\": { \"type\": \"number\" },\r",
-                  "                    \"_id\": { \"type\": \"string\" }\r",
-                  "                },\r",
-                  "                // Chaves obrigatórias que todo usuário listado precisa retornar\r",
-                  "                \"required\": [\"nome\", \"preco\", \"descricao\", \"quantidade\", \"_id\"]\r",
-                  "            }\r",
-                  "        }\r",
-                  "    },\r",
-                  "    \"required\": [\"quantidade\", \"produtos\"]\r",
-                  "};\r",
-                  "\r",
-                  "// Instanciar o validador AJV\r",
-                  "const Ajv = require(\"ajv\");\r",
-                  "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
-                  "\r",
-                  "// Teste de contrato do JSON Schema\r",
-                  "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
-                  "    const respostaJson = pm.response.json();\r",
-                  "    const valid = ajv.validate(schema, respostaJson);\r",
-                  "\r",
-                  "    // Se falhar, exibe os erros detalhados no console\r",
-                  "    if (!valid) {\r",
-                  "        console.log(\"Erros de validação:\", ajv.errors);\r",
-                  "    }\r",
-                  "\r",
-                  "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
-            "url": {
-              "raw": "{{baseURL}}/produtos",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "produtos"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Cadastrar produto",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Extrair o corpo da resposta JSON\r",
-                  "const resposta = pm.response.json();\r",
-                  "\r",
-                  "// Extrai o id do usuário do JSON de resposta\r",
-                  "const rawId = resposta._id;\r",
-                  "\r",
-                  "// Salvar o id na variável de ambiente da coleção\r",
-                  "pm.collectionVariables.set(\"idProduto\", rawId);\r",
-                  "\r",
-                  "// Teste principal de autenticação\r",
-                  "pm.test(\"Deve cadastrar um produto na base de dados\", () => {\r",
-                  "    // Verifica se o status HTTP é 201\r",
-                  "    pm.response.to.have.status(201);\r",
-                  "\r",
-                  "    // Confirma que a mensagem indica sucesso\r",
-                  "    pm.expect(resposta.message).to.eql(\"Cadastro realizado com sucesso\");\r",
-                  "    console.log(resposta.message);\r",
-                  "});\r",
-                  "\r",
-                  "// Definição do JSON Schema esperado\r",
-                  "const schema = {\r",
-                  "    type: \"object\",\r",
-                  "    properties: {\r",
-                  "        message: { type: \"string\" },\r",
-                  "        _id: { type: \"string\" }\r",
-                  "    },\r",
-                  "    required: [\"message\", \"_id\"]\r",
-                  "};\r",
-                  "\r",
-                  "// Instanciar o validador AJV\r",
-                  "const Ajv = require(\"ajv\");\r",
-                  "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
-                  "\r",
-                  "// Teste de contrato do JSON Schema\r",
-                  "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
-                  "    const respostaJson = pm.response.json();\r",
-                  "    const valid = ajv.validate(schema, respostaJson);\r",
-                  "\r",
-                  "    // Se falhar, exibe os erros detalhados no console\r",
-                  "    if (!valid) {\r",
-                  "        console.log(\"Erros de validação:\", ajv.errors);\r",
-                  "    }\r",
-                  "\r",
-                  "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
-                  "});\r",
-                  "\r",
-                  "pm.collectionVariables.unset(\"nomeProduto\");\r",
-                  "pm.collectionVariables.unset(\"precoProduto\");\r",
-                  "pm.collectionVariables.unset(\"descricaoProduto\");\r",
-                  "pm.collectionVariables.unset(\"quantidadeProduto\");"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "// Geração dinâmica dos dados do produto\r",
-                  "const numeroAleatorio = Math.floor(Math.random() * 10000);\r",
-                  "\r",
-                  "const nomeProduto = `Produto Auto ${numeroAleatorio}`;\r",
-                  "const precoProduto = Math.floor(Math.random() * 500) + 10; // Preço aleatório entre 10 e 510\r",
-                  "const descricaoProduto = `Descrição automatizada para o produto número ${numeroAleatorio}`;\r",
-                  "const quantidadeProduto = Math.floor(Math.random() * 100) + 1; // Quantidade aleatória entre 1 e 101\r",
-                  "\r",
-                  "// Salva no ambiente APENAS o que o Body vai ler nas chaves {{...}}\r",
-                  "pm.collectionVariables.set(\"nomeProduto\", nomeProduto);\r",
-                  "pm.collectionVariables.set(\"precoProduto\", precoProduto);\r",
-                  "pm.collectionVariables.set(\"descricaoProduto\", descricaoProduto);\r",
-                  "pm.collectionVariables.set(\"quantidadeProduto\", quantidadeProduto);"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
+              "name": "Listar produtos cadastrados",
+              "event": [
                 {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve listar produtos da base\", () => {\r",
+                      "    // OBSERVAÇÃO: A API do ServeRest não permite filtrar a lista por tamanho na URL\r",
+                      "    // Este é o motivo deste teste listar todos os produtos\r",
+                      "    // A lista de usuários é limpa a cada 10 minutos\r",
+                      "\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "\r",
+                      "    // Verifica se a quantidade de usuários retornada é igual ao tamanho do array de usuários\r",
+                      "    pm.expect(resposta.quantidade).to.eql(resposta.produtos.length);\r",
+                      "\r",
+                      "    // Verifica se a quantidade de usuários é maior que zero e se o array de usuários é um array válido\r",
+                      "    pm.expect(resposta.quantidade).to.be.greaterThan(0);\r",
+                      "\r",
+                      "    // Verifica se o array de usuários é um array válido e não vazio\r",
+                      "    pm.expect(resposta.produtos).to.be.an('array');\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    \"type\": \"object\",\r",
+                      "    \"properties\": {\r",
+                      "        \"quantidade\": { \"type\": \"number\" },\r",
+                      "        \"produtos\": {\r",
+                      "            \"type\": \"array\",\r",
+                      "            \"items\": {\r",
+                      "                \"type\": \"object\",\r",
+                      "                \"properties\": {\r",
+                      "                    \"nome\": { \"type\": \"string\" },\r",
+                      "                    \"preco\": { \"type\": \"number\" },\r",
+                      "                    \"descricao\": { \"type\": \"string\" },\r",
+                      "                    \"quantidade\": { \"type\": \"number\" },\r",
+                      "                    \"_id\": { \"type\": \"string\" }\r",
+                      "                },\r",
+                      "                // Chaves obrigatórias que todo usuário listado precisa retornar\r",
+                      "                \"required\": [\"nome\", \"preco\", \"descricao\", \"quantidade\", \"_id\"]\r",
+                      "            }\r",
+                      "        }\r",
+                      "    },\r",
+                      "    \"required\": [\"quantidade\", \"produtos\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
                 }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nome\": \"{{nomeProduto}}\",\r\n  \"preco\": {{precoProduto}},\r\n  \"descricao\": \"{{descricaoProduto}}\",\r\n  \"quantidade\": {{quantidadeProduto}}\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{baseURL}}/produtos",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "produtos"
+                  ]
                 }
-              }
-            },
-            "url": {
-              "raw": "{{baseURL}}/produtos",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "produtos"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Listar produto cadastrado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Extrair o corpo da resposta JSON\r",
-                  "const resposta = pm.response.json();\r",
-                  "\r",
-                  "// Teste principal de autenticação\r",
-                  "pm.test(\"Deve listar apenas o produto cadastrado na base\", () => {\r",
-                  "    // Verifica se o status HTTP é 200\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// Definição do JSON Schema esperado\r",
-                  "const schema = {\r",
-                  "    \"type\": \"object\",\r",
-                  "    \"properties\": {\r",
-                  "        \"nome\": { \"type\": \"string\" },\r",
-                  "        \"preco\": { \"type\": \"number\" },\r",
-                  "        \"descricao\": { \"type\": \"string\" },\r",
-                  "        \"quantidade\": { \"type\": \"number\" },\r",
-                  "        \"_id\": { \"type\": \"string\" }\r",
-                  "    },\r",
-                  "    // Chaves obrigatórias que todo usuário listado precisa retornar\r",
-                  "    \"required\": [\"nome\", \"preco\", \"descricao\", \"quantidade\", \"_id\"]\r",
-                  "};\r",
-                  "\r",
-                  "// Instanciar o validador AJV\r",
-                  "const Ajv = require(\"ajv\");\r",
-                  "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
-                  "\r",
-                  "// Teste de contrato do JSON Schema\r",
-                  "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
-                  "    const respostaJson = pm.response.json();\r",
-                  "    const valid = ajv.validate(schema, respostaJson);\r",
-                  "\r",
-                  "    // Se falhar, exibe os erros detalhados no console\r",
-                  "    if (!valid) {\r",
-                  "        console.log(\"Erros de validação:\", ajv.errors);\r",
-                  "    }\r",
-                  "\r",
-                  "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
-            "url": {
-              "raw": "{{baseURL}}/produtos/{{idProduto}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "produtos",
-                "{{idProduto}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Editar produto cadastrado",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Extrair o corpo da resposta JSON\r",
-                  "const resposta = pm.response.json();\r",
-                  "\r",
-                  "// Teste principal de autenticação\r",
-                  "pm.test(\"Deve editar produto cadastrado na base\", () => {\r",
-                  "    // Verifica se o status HTTP é 200\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "\r",
-                  "    // Confirma que a mensagem indica sucesso\r",
-                  "    pm.expect(resposta.message).to.eql(\"Registro alterado com sucesso\");\r",
-                  "    console.log(resposta.message);\r",
-                  "});\r",
-                  "\r",
-                  "// Definição do JSON Schema esperado\r",
-                  "const schema = {\r",
-                  "    type: \"object\",\r",
-                  "    properties: {\r",
-                  "        message: { type: \"string\" }\r",
-                  "    },\r",
-                  "    required: [\"message\"]\r",
-                  "};\r",
-                  "\r",
-                  "// Instanciar o validador AJV\r",
-                  "const Ajv = require(\"ajv\");\r",
-                  "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
-                  "\r",
-                  "// Teste de contrato do JSON Schema\r",
-                  "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
-                  "    const respostaJson = pm.response.json();\r",
-                  "    const valid = ajv.validate(schema, respostaJson);\r",
-                  "\r",
-                  "    // Se falhar, exibe os erros detalhados no console\r",
-                  "    if (!valid) {\r",
-                  "        console.log(\"Erros de validação:\", ajv.errors);\r",
-                  "    }\r",
-                  "\r",
-                  "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
+              },
+              "response": []
             },
             {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "// Geração dinâmica dos dados do produto\r",
-                  "const numeroAleatorio = Math.floor(Math.random() * 10000);\r",
-                  "\r",
-                  "const nomeProduto = `Produto Auto ${numeroAleatorio}`;\r",
-                  "const precoProduto = Math.floor(Math.random() * 500) + 10; // Preço aleatório entre 10 e 510\r",
-                  "const descricaoProduto = `Descrição automatizada para o produto número ${numeroAleatorio}`;\r",
-                  "const quantidadeProduto = Math.floor(Math.random() * 100) + 1; // Quantidade aleatória entre 1 e 101\r",
-                  "\r",
-                  "// Salva no ambiente APENAS o que o Body vai ler nas chaves {{...}}\r",
-                  "pm.collectionVariables.set(\"nomeProduto\", nomeProduto);\r",
-                  "pm.collectionVariables.set(\"precoProduto\", precoProduto);\r",
-                  "pm.collectionVariables.set(\"descricaoProduto\", descricaoProduto);\r",
-                  "pm.collectionVariables.set(\"quantidadeProduto\", quantidadeProduto);"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
+              "name": "Cadastrar produto",
+              "event": [
                 {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Extrai o id do usuário do JSON de resposta\r",
+                      "const rawId = resposta._id;\r",
+                      "\r",
+                      "// Salvar o id na variável de ambiente da coleção\r",
+                      "pm.collectionVariables.set(\"idProduto\", rawId);\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve cadastrar um produto na base de dados\", () => {\r",
+                      "    // Verifica se o status HTTP é 201\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Cadastro realizado com sucesso\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" },\r",
+                      "        _id: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\", \"_id\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Geração dinâmica dos dados do produto\r",
+                      "const numeroAleatorio = Math.floor(Math.random() * 10000);\r",
+                      "\r",
+                      "const nomeProduto = `Produto Auto ${numeroAleatorio}`;\r",
+                      "const precoProduto = Math.floor(Math.random() * 500) + 10; // Preço aleatório entre 10 e 510\r",
+                      "const descricaoProduto = `Descrição automatizada para o produto número ${numeroAleatorio}`;\r",
+                      "const quantidadeProduto = Math.floor(Math.random() * 100) + 1; // Quantidade aleatória entre 1 e 101\r",
+                      "\r",
+                      "// Salva no ambiente APENAS o que o Body vai ler nas chaves {{...}}\r",
+                      "pm.collectionVariables.set(\"nomeProduto\", nomeProduto);\r",
+                      "pm.collectionVariables.set(\"precoProduto\", precoProduto);\r",
+                      "pm.collectionVariables.set(\"descricaoProduto\", descricaoProduto);\r",
+                      "pm.collectionVariables.set(\"quantidadeProduto\", quantidadeProduto);"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
                 }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nome\": \"{{nomeProduto}}\",\r\n  \"preco\": {{precoProduto}},\r\n  \"descricao\": \"{{descricaoProduto}}\",\r\n  \"quantidade\": {{quantidadeProduto}}\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseURL}}/produtos/{{idProduto}}",
-              "host": [
-                "{{baseURL}}"
               ],
-              "path": [
-                "produtos",
-                "{{idProduto}}"
-              ]
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nome\": \"{{nomeProduto}}\",\r\n  \"preco\": {{precoProduto}},\r\n  \"descricao\": \"{{descricaoProduto}}\",\r\n  \"quantidade\": {{quantidadeProduto}}\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/produtos",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "produtos"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cadastrar produto já existente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"NÃO deve cadastrar um produto já cadastrado\", () => {\r",
+                      "    // Verifica se o status HTTP é 400\r",
+                      "    pm.response.to.have.status(400);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Já existe produto com esse nome\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nome\": \"{{nomeProduto}}\",\r\n  \"preco\": {{precoProduto}},\r\n  \"descricao\": \"{{descricaoProduto}}\",\r\n  \"quantidade\": {{quantidadeProduto}}\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/produtos",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "produtos"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar produto cadastrado",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve listar apenas o produto cadastrado na base\", () => {\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    \"type\": \"object\",\r",
+                      "    \"properties\": {\r",
+                      "        \"nome\": { \"type\": \"string\" },\r",
+                      "        \"preco\": { \"type\": \"number\" },\r",
+                      "        \"descricao\": { \"type\": \"string\" },\r",
+                      "        \"quantidade\": { \"type\": \"number\" },\r",
+                      "        \"_id\": { \"type\": \"string\" }\r",
+                      "    },\r",
+                      "    // Chaves obrigatórias que todo usuário listado precisa retornar\r",
+                      "    \"required\": [\"nome\", \"preco\", \"descricao\", \"quantidade\", \"_id\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{baseURL}}/produtos/{{idProduto}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "produtos",
+                    "{{idProduto}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar produto cadastrado",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve editar produto cadastrado na base\", () => {\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Registro alterado com sucesso\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Geração dinâmica dos dados do produto\r",
+                      "const numeroAleatorio = Math.floor(Math.random() * 10000);\r",
+                      "\r",
+                      "const nomeProduto = `Produto Auto ${numeroAleatorio}`;\r",
+                      "const precoProduto = Math.floor(Math.random() * 500) + 10; // Preço aleatório entre 10 e 510\r",
+                      "const descricaoProduto = `Descrição automatizada para o produto número ${numeroAleatorio}`;\r",
+                      "const quantidadeProduto = Math.floor(Math.random() * 100) + 1; // Quantidade aleatória entre 1 e 101\r",
+                      "\r",
+                      "// Salva no ambiente APENAS o que o Body vai ler nas chaves {{...}}\r",
+                      "pm.collectionVariables.set(\"nomeProduto\", nomeProduto);\r",
+                      "pm.collectionVariables.set(\"precoProduto\", precoProduto);\r",
+                      "pm.collectionVariables.set(\"descricaoProduto\", descricaoProduto);\r",
+                      "pm.collectionVariables.set(\"quantidadeProduto\", quantidadeProduto);"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nome\": \"{{nomeProduto}}\",\r\n  \"preco\": {{precoProduto}},\r\n  \"descricao\": \"{{descricaoProduto}}\",\r\n  \"quantidade\": {{quantidadeProduto}}\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/produtos/{{idProduto}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "produtos",
+                    "{{idProduto}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Excluir produto cadastrado",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Deve excluir produto cadastrado na base\", () => {\r",
+                      "    // Verifica se o status HTTP é 200\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Registro excluído com sucesso\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});\r",
+                      "\r",
+                      "pm.collectionVariables.unset(\"idProduto\");"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseURL}}/produtos/{{idProduto}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "produtos",
+                    "{{idProduto}}"
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
         },
         {
-          "name": "Excluir produto cadastrado",
-          "event": [
+          "name": "Cenários de exceção",
+          "item": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Extrair o corpo da resposta JSON\r",
-                  "const resposta = pm.response.json();\r",
-                  "\r",
-                  "// Teste principal de autenticação\r",
-                  "pm.test(\"Deve excluir produto cadastrado na base\", () => {\r",
-                  "    // Verifica se o status HTTP é 200\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "\r",
-                  "    // Confirma que a mensagem indica sucesso\r",
-                  "    pm.expect(resposta.message).to.eql(\"Registro excluído com sucesso\");\r",
-                  "    console.log(resposta.message);\r",
-                  "});\r",
-                  "\r",
-                  "// Definição do JSON Schema esperado\r",
-                  "const schema = {\r",
-                  "    type: \"object\",\r",
-                  "    properties: {\r",
-                  "        message: { type: \"string\" }\r",
-                  "    },\r",
-                  "    required: [\"message\"]\r",
-                  "};\r",
-                  "\r",
-                  "// Instanciar o validador AJV\r",
-                  "const Ajv = require(\"ajv\");\r",
-                  "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
-                  "\r",
-                  "// Teste de contrato do JSON Schema\r",
-                  "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
-                  "    const respostaJson = pm.response.json();\r",
-                  "    const valid = ajv.validate(schema, respostaJson);\r",
-                  "\r",
-                  "    // Se falhar, exibe os erros detalhados no console\r",
-                  "    if (!valid) {\r",
-                  "        console.log(\"Erros de validação:\", ajv.errors);\r",
-                  "    }\r",
-                  "\r",
-                  "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
-                  "});\r",
-                  "\r",
-                  "pm.collectionVariables.unset(\"idProduto\");"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
+              "name": "Cadastrar produto sem token",
+              "event": [
                 {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Extrair o corpo da resposta JSON\r",
+                      "const resposta = pm.response.json();\r",
+                      "\r",
+                      "// Teste principal de autenticação\r",
+                      "pm.test(\"Não deve cadastrar um produto sem token\", () => {\r",
+                      "    // Verifica se o status HTTP é 401\r",
+                      "    pm.response.to.have.status(401);\r",
+                      "\r",
+                      "    // Confirma que a mensagem indica sucesso\r",
+                      "    pm.expect(resposta.message).to.eql(\"Token de acesso ausente, inválido, expirado ou usuário do token não existe mais\");\r",
+                      "    console.log(resposta.message);\r",
+                      "});\r",
+                      "\r",
+                      "// Definição do JSON Schema esperado\r",
+                      "const schema = {\r",
+                      "    type: \"object\",\r",
+                      "    properties: {\r",
+                      "        message: { type: \"string\" }\r",
+                      "    },\r",
+                      "    required: [\"message\"]\r",
+                      "};\r",
+                      "\r",
+                      "// Instanciar o validador AJV\r",
+                      "const Ajv = require(\"ajv\");\r",
+                      "const ajv = new Ajv({ allErrors: true }); // mostra todos os erros, não apenas o primeiro\r",
+                      "\r",
+                      "// Teste de contrato do JSON Schema\r",
+                      "pm.test(\"Contrato do JSON Schema está correto\", () => {\r",
+                      "    const respostaJson = pm.response.json();\r",
+                      "    const valid = ajv.validate(schema, respostaJson);\r",
+                      "\r",
+                      "    // Se falhar, exibe os erros detalhados no console\r",
+                      "    if (!valid) {\r",
+                      "        console.log(\"Erros de validação:\", ajv.errors);\r",
+                      "    }\r",
+                      "\r",
+                      "    pm.expect(valid, \"Schema inválido\").to.be.true;\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Geração dinâmica dos dados do produto\r",
+                      "const numeroAleatorio = Math.floor(Math.random() * 10000);\r",
+                      "\r",
+                      "const nomeProduto = `Produto Auto ${numeroAleatorio}`;\r",
+                      "const precoProduto = Math.floor(Math.random() * 500) + 10; // Preço aleatório entre 10 e 510\r",
+                      "const descricaoProduto = `Descrição automatizada para o produto número ${numeroAleatorio}`;\r",
+                      "const quantidadeProduto = Math.floor(Math.random() * 100) + 1; // Quantidade aleatória entre 1 e 101\r",
+                      "\r",
+                      "// Salva no ambiente APENAS o que o Body vai ler nas chaves {{...}}\r",
+                      "pm.collectionVariables.set(\"nomeProduto\", nomeProduto);\r",
+                      "pm.collectionVariables.set(\"precoProduto\", precoProduto);\r",
+                      "pm.collectionVariables.set(\"descricaoProduto\", descricaoProduto);\r",
+                      "pm.collectionVariables.set(\"quantidadeProduto\", quantidadeProduto);"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
                 }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/produtos/{{idProduto}}",
-              "host": [
-                "{{baseURL}}"
               ],
-              "path": [
-                "produtos",
-                "{{idProduto}}"
-              ]
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nome\": \"{{nomeProduto}}\",\r\n  \"preco\": {{precoProduto}},\r\n  \"descricao\": \"{{descricaoProduto}}\",\r\n  \"quantidade\": {{quantidadeProduto}}\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/produtos",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "produtos"
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
         }
       ]
     }
